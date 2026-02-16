@@ -1,3 +1,4 @@
+from tensorflow.keras.applications.efficientnet import preprocess_input
 import streamlit as st
 import tensorflow as tf
 import numpy as np
@@ -30,12 +31,14 @@ model = load_model()
 IMG_SIZE = 224
 
 def preprocess_image(image):
-    image = image.convert("RGB")  # Ensure 3 channels
+    image = image.convert("RGB")
     image = image.resize((IMG_SIZE, IMG_SIZE))
-    image = np.array(image) / 255.0
+    image = np.array(image)
+
+    image = preprocess_input(image)  # IMPORTANT FIX
+
     image = np.expand_dims(image, axis=0)
     return image
-
 # -----------------------------
 # Upload Section
 # -----------------------------
@@ -49,9 +52,11 @@ if uploaded_file is not None:
 
     prediction = model.predict(processed_image)[0][0]
 
+    st.write("Raw prediction:", float(prediction))
+
     st.subheader("Prediction Result:")
 
     if prediction > 0.5:
-        st.success(f"Real Image ({prediction:.2f} confidence)")
+        st.error(f"AI Generated Image ({prediction:.2f} confidence)")
     else:
-        st.error(f"AI Generated Image ({1 - prediction:.2f} confidence)")
+        st.success(f"Real Image ({1 - prediction:.2f} confidence)")
